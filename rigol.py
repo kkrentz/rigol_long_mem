@@ -80,19 +80,14 @@ class RigolScope(usbtmc):
         vert_offset = self.askFloat(":"+chan+":OFFS?")
         # This equation is from "DS1000E-D Data Format.pdf"
         A = (240-raw_byte)*(volts_div/25.0) - (vert_offset + volts_div*4.6)
-        return A
 
-    def getWaveTime(self, nsamps):
-        # This equation is from "DS1000E-D Data Format.pdf".  It only works for 600 samples.
-        #time_div = self.askFloat(":TIM:SCAL?")
-        #time_offset = self.askFloat(":TIM:OFFS?")
-        #pt_num = np.arange(nsamps)
-        #return pt_num*(time_div/50.0) - (time_div*6 - time_offset)
+        T = []
+        time_div = self.askFloat(":"+chan+":TIM:SCAL?")
+        time_offset = self.askFloat(":"+chan+":TIM:OFFS?")
+        for i in range(len(A)):
+            T.append(i * (time_div / 50.0) - ((time_div * 6.0) - time_offset))
 
-        time_offset = self.askFloat(":TIM:OFFS?")
-        samp_rate = self.askFloat(":ACQ:SAMP?")
-        pt_num = np.arange(nsamps)
-        return (pt_num - nsamps/2.0) / samp_rate + time_offset
+        return (T, A)
 
     def localMode(self):
         self.write(":KEY:FORC")
@@ -100,3 +95,5 @@ class RigolScope(usbtmc):
 if __name__ == "__main__":
     scope = RigolScope("/dev/usbtmc0")
     print scope.getName()
+    scope.write(":KEY:FORC")
+
