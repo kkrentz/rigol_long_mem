@@ -81,11 +81,16 @@ class RigolScope(usbtmc):
         # This equation is from "DS1000E-D Data Format.pdf"
         A = (240-raw_byte)*(volts_div/25.0) - (vert_offset + volts_div*4.6)
 
-        T = []
-        time_div = self.askFloat(":"+chan+":TIM:SCAL?")
-        time_offset = self.askFloat(":"+chan+":TIM:OFFS?")
-        for i in range(len(A)):
-            T.append(i * (time_div / 50.0) - ((time_div * 6.0) - time_offset))
+        #T = []
+        #time_div = self.askFloat(":"+chan+":TIM:SCAL?")
+        #time_offset = self.askFloat(":"+chan+":TIM:OFFS?")
+        #for i in range(len(A)):
+            #T.append(i * (time_div / 50.0) - ((time_div * 6.0) - time_offset))
+        
+        time_offset = self.askFloat(":TIM:OFFS?")
+        samp_rate = self.askFloat(":ACQ:SAMP?")
+        pt_num = np.arange(len(A))
+        T = (pt_num - len(A)/2.0) / samp_rate + time_offset
 
         return (T, A)
 
